@@ -9,526 +9,369 @@
 
 <body>
 
-<!-- ================= MAIN MENU ================= -->
-
-<div id="mainMenu" class="screen active">
-
-    <div class="menu-overlay">
-
-        <div class="game-logo">
-            <p class="small-title">AN EPIC ADVENTURE</p>
-            <h1>THE LOST KINGDOM</h1>
-            <p class="subtitle">The fate of the kingdom lies in your hands</p>
-        </div>
-
-        <div class="hero-preview">
-            <img src="assets/Hero.png" alt="Hero">
-        </div>
-
-        <div class="menu-buttons">
-
-            <button onclick="startNewGame()">
-                ⚔️ New Game
-            </button>
-
-            <button onclick="continueGame()">
-                ▶️ Continue
-            </button>
-
-            <button onclick="showHelp()">
-                📜 How to Play
-            </button>
-
-        </div>
-
-        <p class="version">The Lost Kingdom • Game 1</p>
-
-    </div>
-
-</div>
-
-
-<!-- ================= STORY SCREEN ================= -->
-
-<div id="storyScreen" class="screen story-screen">
-
-    <div class="story-box">
-
-        <img src="assets/Hero.png" alt="Hero">
-
-        <div class="story-content">
-
-            <p class="story-label">THE LEGEND BEGINS</p>
-
-            <h1>The Lost Kingdom</h1>
-
-            <p>
-                Long ago, a peaceful kingdom was protected by an
-                ancient crystal.
-            </p>
-
-            <p>
-                But one day, the Shadow King stole its power and
-                disappeared into a forgotten castle.
-            </p>
-
-            <p>
-                Monsters now roam the forests, darkness covers the
-                land, and the kingdom is slowly falling apart.
-            </p>
-
-            <p>
-                You are the last hero capable of reaching the castle.
-            </p>
-
-            <h2>Your journey begins now...</h2>
-
-            <button onclick="enterKingdom()">
-                🗺️ Enter the Kingdom
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- ================= HELP ================= -->
-
-<div id="helpScreen" class="screen">
-
-    <div class="help-box">
-
-        <h1>📜 How to Play</h1>
-
-        <div class="help-item">
-            ⚔️ <strong>Combat</strong><br>
-            Attack, defend, use potions or escape.
-        </div>
-
-        <div class="help-item">
-            🗺️ <strong>Explore</strong><br>
-            Travel between the Village, Forest, Cave and Castle.
-        </div>
-
-        <div class="help-item">
-            📜 <strong>Quests</strong><br>
-            Talk to NPCs and complete quests.
-        </div>
-
-        <div class="help-item">
-            🎒 <strong>Inventory</strong><br>
-            Collect keys, weapons, potions and treasures.
-        </div>
-
-        <div class="help-item">
-            🏆 <strong>Endings</strong><br>
-            Your final decision determines the kingdom's fate.
-        </div>
-
-        <button onclick="backToMenu()">
-            ← Back
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- ================= GAME ================= -->
-
-<div id="gameScreen" class="screen">
-
-    <header class="game-header">
-
-        <div class="header-title">
-
-            <h1>⚔️ The Lost Kingdom</h1>
-
-            <span id="locationName">
-                Village
-            </span>
-
-        </div>
-
-        <div class="header-controls">
-
-            <button onclick="toggleSound()" id="soundButton">
-                🔊 Sound
-            </button>
-
-            <button onclick="saveGame()">
-                💾 Save
-            </button>
-
-            <button onclick="loadGame()">
-                📂 Load
-            </button>
-
-            <button onclick="backToMenu()">
-                🏠 Menu
-            </button>
-
-        </div>
-
-    </header>
-
-
-    <div id="saveMessage"></div>
-
-
-    <!-- PLAYER STATUS -->
-
-    <section class="status-section">
-
-        <div class="status-card health-card">
-
-            <span>❤️ Health</span>
-
-            <div class="health-bar">
-
-                <div id="healthFill"></div>
-
+    <!-- MAIN MENU -->
+    <section id="menuScreen" class="screen active">
+        <div class="menu-overlay">
+            <img src="Hero.png" class="menu-hero" alt="Hero">
+
+            <h1>⚔️ THE LOST KINGDOM</h1>
+            <p class="subtitle">An Adventure Begins...</p>
+
+            <div class="menu-buttons">
+                <button onclick="startNewGame()">🎮 New Game</button>
+                <button onclick="continueGame()">▶️ Continue</button>
+                <button onclick="showHelp()">❓ How to Play</button>
             </div>
 
-            <strong id="healthText">
-                100 / 100
-            </strong>
-
+            <p class="copyright">© The Lost Kingdom</p>
         </div>
-
-        <div class="status-card gold-card">
-
-            <span>💰 Gold</span>
-
-            <strong id="goldText">
-                0
-            </strong>
-
-        </div>
-
     </section>
 
 
-    <!-- QUEST -->
+    <!-- STORY SCREEN -->
+    <section id="storyScreen" class="screen">
+        <div class="story-box">
 
-    <section class="quest-card">
+            <img src="Hero.png" class="story-hero" alt="Hero">
 
-        <div>
-            <h2>📜 Current Quest</h2>
-            <p id="questText">
-                Talk to the Elder in the village.
-            </p>
-        </div>
+            <h1>📜 The Story</h1>
 
-    </section>
-
-
-    <!-- ACHIEVEMENTS -->
-
-    <section class="achievement-card">
-
-        <h2>🏆 Achievements</h2>
-
-        <div id="achievementList">
-
-            <span class="achievement locked">
-                🗡️ Goblin Hunter
-            </span>
-
-            <span class="achievement locked">
-                ⚔️ Dark Knight Slayer
-            </span>
-
-            <span class="achievement locked">
-                👑 Shadow King
-            </span>
-
-            <span class="achievement locked">
-                🌟 Kingdom Savior
-            </span>
-
-        </div>
-
-    </section>
-
-
-    <!-- LOCATION -->
-
-    <section class="location-image-container">
-
-        <img
-            id="locationImage"
-            src="assets/Village.jpg"
-            alt="Location"
-        >
-
-        <div class="location-overlay">
-
-            <h2 id="locationTitle">
-                The Village
-            </h2>
-
-            <p id="locationDescription">
-                A peaceful village surrounded by mountains.
+            <p>
+                Long ago, the Lost Kingdom was protected by an ancient crystal.
+                The crystal brought peace and power to the kingdom.
             </p>
 
+            <p>
+                But one day, the Shadow King appeared and took control of the
+                ancient castle.
+            </p>
+
+            <p>
+                Monsters now roam the forests, and the kingdom is slowly falling
+                into darkness.
+            </p>
+
+            <p class="story-highlight">
+                ⚔️ You are the hero chosen to restore the kingdom.
+            </p>
+
+            <button onclick="enterKingdom()">Enter the Kingdom ➡️</button>
+
+        </div>
+    </section>
+
+
+    <!-- HELP SCREEN -->
+    <section id="helpScreen" class="screen">
+
+        <div class="help-box">
+
+            <h1>❓ How to Play</h1>
+
+            <div class="help-item">
+                <h3>❤️ Health</h3>
+                <p>Keep your health above zero during battles.</p>
+            </div>
+
+            <div class="help-item">
+                <h3>💰 Gold</h3>
+                <p>Earn gold by completing quests and defeating enemies.</p>
+            </div>
+
+            <div class="help-item">
+                <h3>🎒 Inventory</h3>
+                <p>Collect useful items during your adventure.</p>
+            </div>
+
+            <div class="help-item">
+                <h3>⚔️ Combat</h3>
+                <p>Attack, defend, use potions or run from battles.</p>
+            </div>
+
+            <div class="help-item">
+                <h3>🏆 Endings</h3>
+                <p>Your final choices determine the ending.</p>
+            </div>
+
+            <button onclick="backToMenu()">⬅️ Back</button>
+
         </div>
 
     </section>
 
 
-    <!-- CHARACTER -->
+    <!-- GAME SCREEN -->
+    <section id="gameScreen" class="screen">
 
-    <section class="character-section">
+        <header class="game-header">
 
-        <div class="character-image-container">
+            <div>
+                <h1>⚔️ The Lost Kingdom</h1>
+                <p id="locationName">Village</p>
+            </div>
 
-            <img
-                id="characterImage"
-                src="assets/elder.png"
-                alt="Character"
-            >
+            <div class="header-buttons">
+                <button onclick="saveGame()">💾 Save</button>
+                <button onclick="backToMenu()">🏠 Menu</button>
+            </div>
+
+        </header>
+
+
+        <!-- PLAYER STATUS -->
+        <div class="status-bar">
+
+            <div class="status-card">
+                ❤️
+                <span>Health</span>
+                <strong id="health">100/100</strong>
+            </div>
+
+            <div class="status-card">
+                💰
+                <span>Gold</span>
+                <strong id="gold">0</strong>
+            </div>
+
+            <div class="status-card">
+                🎒
+                <span>Items</span>
+                <strong id="itemCount">0</strong>
+            </div>
 
         </div>
 
-        <div class="character-info">
 
-            <h2 id="characterName">
-                Elder
-            </h2>
+        <main class="game-container">
 
-            <div class="dialogue-box">
+            <!-- LOCATION -->
+            <section class="location-panel">
 
-                <p id="dialogueText">
+                <img
+                    id="locationImage"
+                    src="Village.jpg"
+                    alt="Location"
+                    class="location-image"
+                >
+
+                <div class="location-description">
+                    <h2 id="locationTitle">🏘️ Village</h2>
+                    <p id="locationText">
+                        A peaceful village surrounded by mountains.
+                    </p>
+                </div>
+
+            </section>
+
+
+            <!-- CHARACTER -->
+            <section class="character-panel">
+
+                <img
+                    id="characterImage"
+                    src="elder.png"
+                    alt="Character"
+                    class="character-image"
+                >
+
+                <div id="characterName" class="character-name">
+                    Elder
+                </div>
+
+                <div id="dialogue" class="dialogue">
                     Welcome, brave traveler.
-                </p>
+                </div>
 
-            </div>
-
-        </div>
-
-    </section>
+            </section>
 
 
-    <!-- MAP -->
+            <!-- WORLD MAP -->
+            <section class="map-panel">
 
-    <section class="map-section">
+                <h2>🗺️ World Map</h2>
 
-        <h2>🗺️ World Map</h2>
+                <div class="map-buttons">
 
-        <div class="world-map">
+                    <button onclick="showVillage()">
+                        🏘️ Village
+                    </button>
 
-            <button
-                class="map-location village-location"
-                onclick="showVillage()"
-            >
-                🏘️
-                <span>Village</span>
-            </button>
+                    <button onclick="showForest()">
+                        🌲 Forest
+                    </button>
 
-            <button
-                class="map-location forest-location"
-                onclick="showForest()"
-            >
-                🌲
-                <span>Forest</span>
-            </button>
+                    <button onclick="showCave()">
+                        🕳️ Cave
+                    </button>
 
-            <button
-                class="map-location cave-location"
-                onclick="showCave()"
-            >
-                🕳️
-                <span>Cave</span>
-            </button>
-
-            <button
-                class="map-location castle-location"
-                onclick="showCastle()"
-            >
-                🏰
-                <span>Castle</span>
-            </button>
-
-        </div>
-
-    </section>
-
-
-    <!-- CHOICES -->
-
-    <section class="choices-section">
-
-        <h2>Choose your action</h2>
-
-        <div id="choices"></div>
-
-    </section>
-
-
-    <!-- INVENTORY -->
-
-    <section class="inventory-section">
-
-        <h2>🎒 Inventory</h2>
-
-        <div id="inventory"></div>
-
-    </section>
-
-
-    <!-- COMBAT -->
-
-    <section id="combatSection" class="combat-section hidden">
-
-        <h2>⚔️ BATTLE</h2>
-
-        <div class="battle-arena">
-
-            <div class="fighter">
-
-                <img
-                    id="playerBattleImage"
-                    src="assets/Hero.png"
-                    alt="Hero"
-                >
-
-                <h3>Hero</h3>
-
-                <div class="battle-health">
-
-                    <div id="playerBattleHealth"></div>
+                    <button onclick="showCastle()">
+                        🏰 Castle
+                    </button>
 
                 </div>
 
-                <p id="playerBattleText">
-                    100 / 100
+            </section>
+
+
+            <!-- QUEST -->
+            <section class="quest-panel">
+
+                <h2>📜 Quest</h2>
+
+                <p id="questText">
+                    Talk to the Elder to begin your adventure.
                 </p>
 
-            </div>
+            </section>
 
 
-            <div class="vs">
-                VS
-            </div>
+            <!-- ACHIEVEMENTS -->
+            <section class="achievement-panel">
+
+                <h2>🏆 Achievements</h2>
+
+                <ul id="achievementList">
+                    <li>🔒 First Steps</li>
+                    <li>🔒 Monster Hunter</li>
+                    <li>🔒 Dark Knight Slayer</li>
+                    <li>🔒 Shadow King Slayer</li>
+                    <li>🔒 Hero of the Kingdom</li>
+                </ul>
+
+            </section>
 
 
-            <div class="fighter">
+            <!-- CHOICES -->
+            <section class="choices-panel">
 
-                <img
-                    id="enemyBattleImage"
-                    src="assets/goblin.png"
-                    alt="Enemy"
-                >
+                <h2>What will you do?</h2>
 
-                <h3 id="enemyName">
-                    Goblin
-                </h3>
+                <div id="choices"></div>
 
-                <div class="battle-health">
+            </section>
 
-                    <div id="enemyBattleHealth"></div>
+
+            <!-- INVENTORY -->
+            <section class="inventory-panel">
+
+                <h2>🎒 Inventory</h2>
+
+                <div id="inventory">
+                    <p>Inventory is empty.</p>
+                </div>
+
+            </section>
+
+
+            <!-- COMBAT -->
+            <section id="combatPanel" class="combat-panel hidden">
+
+                <h2>⚔️ Battle</h2>
+
+                <div class="combat-area">
+
+                    <div class="fighter">
+
+                        <img
+                            id="playerCombatImage"
+                            src="Hero.png"
+                            alt="Hero"
+                        >
+
+                        <h3>Hero</h3>
+
+                        <div class="hp-bar">
+                            <div id="playerHPBar"></div>
+                        </div>
+
+                        <p id="playerHPText">100/100</p>
+
+                    </div>
+
+
+                    <div class="vs">
+                        VS
+                    </div>
+
+
+                    <div class="fighter">
+
+                        <img
+                            id="enemyCombatImage"
+                            src="goblin.png"
+                            alt="Enemy"
+                        >
+
+                        <h3 id="enemyName">Goblin</h3>
+
+                        <div class="hp-bar enemy-hp">
+                            <div id="enemyHPBar"></div>
+                        </div>
+
+                        <p id="enemyHPText">60/60</p>
+
+                    </div>
 
                 </div>
 
-                <p id="enemyBattleText">
-                    60 / 60
+
+                <div class="combat-buttons">
+
+                    <button onclick="playerAttack()">
+                        ⚔️ Attack
+                    </button>
+
+                    <button onclick="playerDefend()">
+                        🛡️ Defend
+                    </button>
+
+                    <button onclick="usePotion()">
+                        🧪 Potion
+                    </button>
+
+                    <button onclick="runFromBattle()">
+                        🏃 Run
+                    </button>
+
+                </div>
+
+                <p id="combatLog">
+                    The battle begins!
                 </p>
 
-            </div>
-
-        </div>
+            </section>
 
 
-        <div class="combat-log">
+            <!-- ENDING -->
+            <section id="endingPanel" class="ending-panel hidden">
 
-            <p id="combatLog">
-                A dangerous enemy appears!
-            </p>
+                <h1 id="endingTitle">
+                    🏆 Ending
+                </h1>
 
-        </div>
+                <p id="endingText"></p>
+
+                <button onclick="startNewGame()">
+                    🔄 Play Again
+                </button>
+
+                <button onclick="backToMenu()">
+                    🏠 Main Menu
+                </button>
+
+            </section>
+
+        </main>
 
 
-        <div class="combat-buttons">
-
-            <button onclick="playerAttack()">
-                ⚔️ Attack
-            </button>
-
-            <button onclick="playerDefend()">
-                🛡️ Defend
-            </button>
-
-            <button onclick="usePotion()">
-                🧪 Use Potion
-            </button>
-
-            <button onclick="runFromBattle()">
-                🏃 Run
-            </button>
-
-        </div>
+        <footer>
+            <p>⚔️ The Lost Kingdom | Adventure Game</p>
+        </footer>
 
     </section>
 
 
-    <!-- ENDING -->
-
-    <section id="endingSection" class="ending-section hidden">
-
-        <div class="ending-icon">
-            🏆
-        </div>
-
-        <h1 id="endingTitle">
-            The Adventure Ends
-        </h1>
-
-        <p id="endingText">
-            Your adventure has ended.
-        </p>
-
-        <div class="ending-buttons">
-
-            <button onclick="restoreKingdom()">
-                🌟 Restore Kingdom
-            </button>
-
-            <button onclick="takeCrystalPower()">
-                👑 Take Crystal's Power
-            </button>
-
-            <button onclick="destroyCrystal()">
-                💥 Destroy Crystal
-            </button>
-
-            <button onclick="startNewGame()">
-                🔄 New Adventure
-            </button>
-
-        </div>
-
-    </section>
-
-
-    <footer>
-
-        <p>
-            ⚔️ THE LOST KINGDOM
-        </p>
-
-        <span>
-            Game 1 • Final Edition
-        </span>
-
-    </footer>
-
-</div>
-
-
-<script src="game.js"></script>
+    <script src="game.js"></script>
 
 </body>
 </html>
