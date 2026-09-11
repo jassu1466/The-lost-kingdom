@@ -1,178 +1,148 @@
-/* =====================================================
+/* =========================================
    THE LOST KINGDOM
-   STEP 12 - FINAL EDITION
-   ===================================================== */
+   Main Game JavaScript
+========================================= */
 
 
-/* ================= PLAYER ================= */
+/* =========================================
+   GAME STATE
+========================================= */
 
-let maxHealth = 100;
-let health = 100;
+let player = {
+    hp: 100,
+    maxHp: 100,
+    gold: 0,
+    inventory: []
+};
 
-let gold = 0;
+let gameState = {
 
-let inventory = [];
+    location: "village",
 
+    questStarted: false,
+    questCompleted: false,
 
-/* ================= GAME STATE ================= */
+    caveQuestCompleted: false,
 
-let currentLocation = "Village";
+    healerUsed: false,
+    blacksmithTalked: false,
 
-let goblinDefeated = false;
-let darkKnightDefeated = false;
-let bossDefeated = false;
+    goblinDefeated: false,
+    darkKnightDefeated: false,
+    bossDefeated: false,
 
-let castleUnlocked = false;
+    castleUnlocked: false,
 
+    battleActive: false,
 
-/* ================= QUESTS ================= */
-
-let questStarted = false;
-let questCompleted = false;
-
-let caveQuestCompleted = false;
-
-let healerUsed = false;
-let blacksmithTalked = false;
-
-
-/* ================= COMBAT ================= */
-
-let inCombat = false;
-
-let enemyName = "";
-let enemyHealth = 0;
-let enemyMaxHealth = 0;
-let enemyAttackPower = 0;
-
-let defending = false;
+    currentEnemy: null
+};
 
 
-/* ================= SOUND ================= */
+/* =========================================
+   ENEMIES
+========================================= */
 
-let audioContext = null;
-let soundEnabled = true;
+const enemies = {
 
-let musicTimer = null;
-let musicStep = 0;
+    goblin: {
+        name: "Goblin",
+        hp: 60,
+        maxHp: 60,
+        attack: 15,
+        image: "goblin.png"
+    },
 
-const musicNotes = [
-    261.63,
-    329.63,
-    392.00,
-    329.63,
-    293.66,
-    349.23,
-    440.00,
-    349.23
-];
+    darkKnight: {
+        name: "Dark Knight",
+        hp: 100,
+        maxHp: 100,
+        attack: 20,
+        image: "dark-knight.png"
+    },
+
+    shadowKing: {
+        name: "Shadow King",
+        hp: 150,
+        maxHp: 150,
+        attack: 25,
+        image: "shadow-king.png"
+    }
+
+};
 
 
-/* =====================================================
-   SCREEN
-   ===================================================== */
+/* =========================================
+   SCREEN CONTROL
+========================================= */
 
-function showScreen(id) {
+function showScreen(screenId) {
 
-    document.querySelectorAll(".screen")
-        .forEach(screen => {
-            screen.classList.remove("active");
-        });
+    document.querySelectorAll(".screen").forEach(screen => {
+        screen.classList.remove("active");
+    });
 
-    document.getElementById(id)
-        .classList.add("active");
+    document.getElementById(screenId).classList.add("active");
 }
 
-
-/* =====================================================
-   NEW GAME
-   ===================================================== */
 
 function startNewGame() {
 
-    health = 100;
-    gold = 0;
+    player = {
+        hp: 100,
+        maxHp: 100,
+        gold: 0,
+        inventory: []
+    };
 
-    inventory = [];
+    gameState = {
 
-    currentLocation = "Village";
+        location: "village",
 
-    goblinDefeated = false;
-    darkKnightDefeated = false;
-    bossDefeated = false;
+        questStarted: false,
+        questCompleted: false,
 
-    castleUnlocked = false;
+        caveQuestCompleted: false,
 
-    questStarted = false;
-    questCompleted = false;
+        healerUsed: false,
+        blacksmithTalked: false,
 
-    caveQuestCompleted = false;
+        goblinDefeated: false,
+        darkKnightDefeated: false,
+        bossDefeated: false,
 
-    healerUsed = false;
-    blacksmithTalked = false;
+        castleUnlocked: false,
 
-    inCombat = false;
+        battleActive: false,
 
-    document.getElementById("endingSection")
-        .classList.add("hidden");
+        currentEnemy: null
+    };
+
+    updateUI();
 
     showScreen("storyScreen");
 
-    initAudio();
-    startMusic();
+    playSound();
 }
 
-
-/* =====================================================
-   ENTER KINGDOM
-   ===================================================== */
 
 function enterKingdom() {
 
     showScreen("gameScreen");
 
-    updateAll();
-
     showVillage();
 
-    playSound("start");
+    updateUI();
+
+    playSound();
 }
 
-
-/* =====================================================
-   CONTINUE
-   ===================================================== */
-
-function continueGame() {
-
-    if (!localStorage.getItem("lostKingdomSave")) {
-
-        alert("No saved game found.");
-
-        return;
-    }
-
-    showScreen("gameScreen");
-
-    if (loadGame()) {
-
-        initAudio();
-        startMusic();
-
-        restoreLocation();
-    }
-}
-
-
-/* =====================================================
-   MENU
-   ===================================================== */
 
 function backToMenu() {
 
-    stopMusic();
+    showScreen("menuScreen");
 
-    showScreen("mainMenu");
+    stopMusic();
 }
 
 
@@ -182,596 +152,503 @@ function showHelp() {
 }
 
 
-/* =====================================================
-   LOCATION IMAGE
-   ===================================================== */
-
-function changeLocationImage(
-    image,
-    title,
-    description
-) {
-
-    document.getElementById("locationImage")
-        .src = image;
-
-    document.getElementById("locationTitle")
-        .textContent = title;
-
-    document.getElementById("locationDescription")
-        .textContent = description;
-
-    document.getElementById("locationName")
-        .textContent = title;
-}
-
-
-/* =====================================================
-   CHARACTER
-   ===================================================== */
-
-function showCharacter(
-    name,
-    image,
-    dialogue
-) {
-
-    const characterImage =
-        document.getElementById("characterImage");
-
-    characterImage.style.opacity = "0";
-
-    setTimeout(() => {
-
-        characterImage.src = image;
-
-        characterImage.alt = name;
-
-        characterImage.style.opacity = "1";
-
-    }, 100);
-
-
-    document.getElementById("characterName")
-        .textContent = name;
-
-    document.getElementById("dialogueText")
-        .textContent = dialogue;
-}
-
-
-/* =====================================================
+/* =========================================
    VILLAGE
-   ===================================================== */
+========================================= */
 
 function showVillage() {
 
-    currentLocation = "Village";
+    if (gameState.battleActive) {
+        return;
+    }
+
+    gameState.location = "village";
 
     changeLocationImage(
-        "assets/Village.jpg",
-        "The Village",
-        "A peaceful village surrounded by mountains. The people are waiting for a hero."
+        "Village.jpg",
+        "🏘️ Village",
+        "A peaceful village surrounded by mountains."
     );
-
 
     showCharacter(
+        "elder.png",
         "Elder",
-        "assets/elder.png",
-        "Welcome, brave traveler. Our kingdom desperately needs your help."
+        "Welcome, brave traveler. Our kingdom needs your help."
     );
 
-
     setChoices([
-
         ["👴 Talk to Elder", talkToElder],
-
         ["🧭 Talk to Traveler", talkToTraveler],
-
-        ["🔨 Talk to Blacksmith", talkToBlacksmith],
-
-        ["🧪 Visit Healer", talkToHealer]
-
+        ["⚒️ Visit Blacksmith", talkToBlacksmith],
+        ["❤️ Visit Healer", talkToHealer],
+        ["🌲 Go to Forest", showForest],
+        ["🕳️ Go to Cave", showCave]
     ]);
 
+    updateQuest();
 
-    updateAll();
+    updateUI();
 }
 
 
-/* =====================================================
+/* =========================================
    ELDER
-   ===================================================== */
+========================================= */
 
 function talkToElder() {
 
-    if (!questStarted) {
-
-        questStarted = true;
-
-        showCharacter(
-            "Elder",
-            "assets/elder.png",
-            "Monsters have appeared in the forest. Defeat the Goblin and return to me."
-        );
-
-        updateQuest();
-
-        playSound("quest");
-
-        return;
-    }
-
-
-    if (goblinDefeated && !questCompleted) {
-
-        questCompleted = true;
-
-        gold += 50;
-
-        addItem("🏅 Hero Medal");
-
-        showCharacter(
-            "Elder",
-            "assets/elder.png",
-            "You defeated the Goblin! You have earned the trust of our village."
-        );
-
-        updateAll();
-
-        return;
-    }
-
+    gameState.questStarted = true;
 
     showCharacter(
+        "elder.png",
         "Elder",
-        "assets/elder.png",
-        questCompleted
-            ? "You have proven yourself a true hero. The castle awaits you."
-            : "Please defeat the Goblin in the forest and return to me."
+        "Monsters have appeared in the forest. Defeat the Goblin and Dark Knight, then enter the ancient castle."
     );
+
+    setChoices([
+        ["⚔️ Go to Forest", showForest],
+        ["🧭 Talk to Traveler", talkToTraveler],
+        ["⚒️ Visit Blacksmith", talkToBlacksmith],
+        ["❤️ Visit Healer", talkToHealer]
+    ]);
+
+    updateQuest();
 }
 
 
-/* =====================================================
+/* =========================================
    TRAVELER
-   ===================================================== */
+========================================= */
 
 function talkToTraveler() {
 
     showCharacter(
+        "traveler.png",
         "Traveler",
-        "assets/traveler.png",
-        "I have traveled far across these lands. The Shadow King controls the castle. Be careful."
+        "I heard a powerful Shadow King controls the castle. You will need courage to defeat him."
     );
+
+    setChoices([
+        ["🌲 Go to Forest", showForest],
+        ["🕳️ Explore Cave", showCave],
+        ["🏘️ Return to Village", showVillage]
+    ]);
 }
 
 
-/* =====================================================
+/* =========================================
    BLACKSMITH
-   ===================================================== */
+========================================= */
 
 function talkToBlacksmith() {
 
-    blacksmithTalked = true;
+    gameState.blacksmithTalked = true;
 
     showCharacter(
+        "blacksmith.png",
         "Blacksmith",
-        "assets/blacksmith.png",
-        "A strong weapon can save your life. Defeat the Dark Knight and claim his sword."
+        "Take care, hero. Strong enemies guard the path to the castle."
     );
 
-    updateAll();
+    setChoices([
+        ["🌲 Go to Forest", showForest],
+        ["🏘️ Return to Village", showVillage]
+    ]);
+
+    updateQuest();
 }
 
 
-/* =====================================================
+/* =========================================
    HEALER
-   ===================================================== */
+========================================= */
 
 function talkToHealer() {
 
-    if (!healerUsed) {
-
-        health = maxHealth;
-
-        healerUsed = true;
+    if (gameState.healerUsed) {
 
         showCharacter(
+            "healer.png",
             "Healer",
-            "assets/healer.png",
-            "Your wounds are healed. Go forth with courage."
+            "I have already healed you. Stay safe, hero."
         );
-
-        updateAll();
 
     } else {
 
+        player.hp = player.maxHp;
+
+        gameState.healerUsed = true;
+
         showCharacter(
+            "healer.png",
             "Healer",
-            "assets/healer.png",
-            "I have already healed you. Take care on your journey."
+            "Your health has been restored!"
         );
+
+        updateUI();
     }
+
+    setChoices([
+        ["🏘️ Return to Village", showVillage],
+        ["🌲 Go to Forest", showForest]
+    ]);
 }
 
 
-/* =====================================================
+/* =========================================
    FOREST
-   ===================================================== */
+========================================= */
 
 function showForest() {
 
-    currentLocation = "Forest";
+    gameState.location = "forest";
 
     changeLocationImage(
-        "assets/Forest.jpg",
-        "The Enchanted Forest",
-        "An ancient forest filled with strange sounds. Somewhere nearby, a Goblin is waiting."
+        "Forest.jpg",
+        "🌲 Dark Forest",
+        "A dangerous forest filled with monsters."
     );
 
+    showCharacter(
+        "traveler.png",
+        "Traveler",
+        "Be careful! A Goblin is hiding somewhere in this forest."
+    );
 
-    if (!goblinDefeated) {
+    let choices = [];
 
-        showCharacter(
-            "Goblin",
-            "assets/goblin.png",
-            "Grrr! You should not have entered my forest!"
-        );
+    if (!gameState.goblinDefeated) {
 
-        setChoices([
-
-            ["⚔️ Fight Goblin", startGoblinBattle],
-
-            ["🏘️ Return to Village", showVillage]
-
+        choices.push([
+            "👹 Fight Goblin",
+            startGoblinBattle
         ]);
 
     } else {
 
-        showCharacter(
-            "Hero",
-            "assets/Hero.png",
-            "The forest is quiet now. The Goblin threat has been defeated."
-        );
-
-        setChoices([
-
-            ["🏘️ Return to Village", showVillage],
-
-            ["🕳️ Explore Cave", showCave],
-
-            ["🏰 Go to Castle", showCastle]
-
+        choices.push([
+            "✅ Goblin Defeated",
+            () => {
+                showCharacter(
+                    "traveler.png",
+                    "Traveler",
+                    "You already defeated the Goblin."
+                );
+            }
         ]);
+
     }
 
+    if (gameState.goblinDefeated) {
 
-    updateAll();
+        choices.push([
+            "🛡️ Go Deeper",
+            startDarkKnightBattle
+        ]);
+
+    }
+
+    choices.push([
+        "🏘️ Return to Village",
+        showVillage
+    ]);
+
+    choices.push([
+        "🕳️ Explore Cave",
+        showCave
+    ]);
+
+    setChoices(choices);
+
+    updateQuest();
+    updateUI();
 }
 
 
-/* =====================================================
+/* =========================================
    CAVE
-   ===================================================== */
+========================================= */
 
 function showCave() {
 
-    currentLocation = "Cave";
+    gameState.location = "cave";
 
     changeLocationImage(
-        "assets/Cave.jpg",
-        "The Forgotten Cave",
-        "A dark cave hides ancient treasures and secrets."
+        "Cave.jpg",
+        "🕳️ Ancient Cave",
+        "A dark cave containing forgotten treasures."
     );
 
+    showCharacter(
+        "traveler.png",
+        "Traveler",
+        "There may be useful items hidden inside this cave."
+    );
 
-    if (!caveQuestCompleted) {
+    if (!gameState.caveQuestCompleted) {
 
-        addItem("🔥 Torch");
+        player.inventory.push("Torch");
+        player.inventory.push("Health Potion");
+        player.gold += 20;
 
-        addItem("🧪 Health Potion");
-
-        gold += 20;
-
-        caveQuestCompleted = true;
-
-        showCharacter(
-            "Hero",
-            "assets/Hero.png",
-            "I found a torch, a health potion and some gold inside the cave."
-        );
-
-    } else {
+        gameState.caveQuestCompleted = true;
 
         showCharacter(
-            "Hero",
-            "assets/Hero.png",
-            "The cave is empty now. I have already collected everything useful."
+            "traveler.png",
+            "Traveler",
+            "You found a Torch, a Health Potion and 20 gold!"
         );
     }
 
-
     setChoices([
-
         ["🏘️ Return to Village", showVillage],
-
-        ["🌲 Return to Forest", showForest],
-
-        ["🏰 Go to Castle", showCastle]
-
+        ["🌲 Go to Forest", showForest]
     ]);
 
-
-    updateAll();
+    updateUI();
 }
 
 
-/* =====================================================
+/* =========================================
    CASTLE
-   ===================================================== */
+========================================= */
 
 function showCastle() {
 
-    currentLocation = "Castle";
+    if (!gameState.goblinDefeated || !gameState.darkKnightDefeated) {
+
+        showCharacter(
+            "traveler.png",
+            "Traveler",
+            "The castle gates are locked. Defeat the enemies guarding the kingdom first."
+        );
+
+        setChoices([
+            ["🌲 Return to Forest", showForest],
+            ["🏘️ Return to Village", showVillage]
+        ]);
+
+        return;
+    }
+
+    gameState.location = "castle";
+    gameState.castleUnlocked = true;
 
     changeLocationImage(
-        "assets/castle.jpg",
-        "The Shadow Castle",
-        "A dark fortress rises above the kingdom. Evil power surrounds it."
+        "castle.jpg",
+        "🏰 Ancient Castle",
+        "The castle is surrounded by dark magic. The Shadow King waits inside."
     );
-
-
-    if (!goblinDefeated) {
-
-        showCharacter(
-            "Hero",
-            "assets/Hero.png",
-            "The castle gate is sealed. I need to prove myself first."
-        );
-
-        setChoices([
-            ["🌲 Go to Forest", showForest]
-        ]);
-
-        updateAll();
-
-        return;
-    }
-
-
-    if (!darkKnightDefeated) {
-
-        showCharacter(
-            "Dark Knight",
-            "assets/dark-knight.png",
-            "None shall pass through these halls!"
-        );
-
-        setChoices([
-
-            ["⚔️ Fight Dark Knight", startDarkKnightBattle],
-
-            ["🌲 Return to Forest", showForest]
-
-        ]);
-
-        updateAll();
-
-        return;
-    }
-
-
-    if (!bossDefeated) {
-
-        showCharacter(
-            "Shadow King",
-            "assets/shadow-king.png",
-            "You have come far, hero. Now face your final challenge."
-        );
-
-        setChoices([
-
-            ["👑 Enter Shadow Chamber", startBossBattle],
-
-            ["🌲 Return to Forest", showForest]
-
-        ]);
-
-        updateAll();
-
-        return;
-    }
-
 
     showCharacter(
-        "Hero",
-        "assets/Hero.png",
-        "The Shadow King has fallen. The Ancient Crystal remains."
+        "shadow-king.png",
+        "Shadow King",
+        "You have come far, hero. But your journey ends here!"
     );
 
-    showEnding();
+    if (!gameState.bossDefeated) {
 
-    updateAll();
+        setChoices([
+            ["👑 Fight Shadow King", startBossBattle],
+            ["🏃 Leave Castle", showForest]
+        ]);
+
+    } else {
+
+        setChoices([
+            ["💎 Restore the Kingdom", endingRestore],
+            ["👑 Take the Crystal Power", endingPower],
+            ["🔥 Destroy the Crystal", endingDestroy]
+        ]);
+
+    }
+
+    updateQuest();
+    updateUI();
 }
 
 
-/* =====================================================
+/* =========================================
+   LOCATION IMAGE
+========================================= */
+
+function changeLocationImage(image, title, description) {
+
+    document.getElementById("locationImage").src = image;
+
+    document.getElementById("locationTitle").textContent = title;
+
+    document.getElementById("locationText").textContent = description;
+
+    document.getElementById("locationName").textContent = title;
+}
+
+
+/* =========================================
+   CHARACTER
+========================================= */
+
+function showCharacter(image, name, dialogue) {
+
+    document.getElementById("characterImage").src = image;
+
+    document.getElementById("characterName").textContent = name;
+
+    document.getElementById("dialogue").textContent = dialogue;
+}
+
+
+/* =========================================
    CHOICES
-   ===================================================== */
+========================================= */
 
 function setChoices(choices) {
 
-    const choicesDiv =
-        document.getElementById("choices");
+    const container = document.getElementById("choices");
 
-    choicesDiv.innerHTML = "";
+    container.innerHTML = "";
 
     choices.forEach(choice => {
 
-        const button =
-            document.createElement("button");
+        const button = document.createElement("button");
 
         button.textContent = choice[0];
 
         button.onclick = choice[1];
 
-        choicesDiv.appendChild(button);
+        container.appendChild(button);
+
     });
 }
 
 
-/* =====================================================
-   BATTLES
-   ===================================================== */
+/* =========================================
+   COMBAT
+========================================= */
 
 function startGoblinBattle() {
 
-    startBattle(
-        "Goblin",
-        60,
-        15,
-        "assets/goblin.png"
-    );
+    startBattle("goblin");
 }
 
 
 function startDarkKnightBattle() {
 
-    startBattle(
-        "Dark Knight",
-        100,
-        20,
-        "assets/dark-knight.png"
-    );
+    startBattle("darkKnight");
 }
 
 
 function startBossBattle() {
 
-    startBattle(
-        "Shadow King",
-        150,
-        25,
-        "assets/shadow-king.png"
-    );
+    startBattle("shadowKing");
 }
 
 
-/* =====================================================
-   START BATTLE
-   ===================================================== */
+function startBattle(enemyType) {
 
-function startBattle(
-    name,
-    maxHP,
-    attackPower,
-    image
-) {
+    const original = enemies[enemyType];
 
-    inCombat = true;
+    gameState.currentEnemy = {
 
-    enemyName = name;
+        type: enemyType,
 
-    enemyMaxHealth = maxHP;
+        name: original.name,
 
-    enemyHealth = maxHP;
+        hp: original.maxHp,
 
-    enemyAttackPower = attackPower;
+        maxHp: original.maxHp,
 
-    defending = false;
+        attack: original.attack,
 
+        image: original.image
+    };
 
-    document.getElementById("enemyName")
-        .textContent = enemyName;
+    gameState.battleActive = true;
 
-    document.getElementById("enemyBattleImage")
-        .src = image;
+    document.getElementById("combatPanel").classList.remove("hidden");
 
+    document.getElementById("choices").innerHTML = "";
 
-    document.getElementById("combatSection")
-        .classList.remove("hidden");
+    document.getElementById("enemyName").textContent =
+        gameState.currentEnemy.name;
 
+    document.getElementById("enemyCombatImage").src =
+        gameState.currentEnemy.image;
 
-    document.getElementById("combatLog")
-        .textContent =
-        `${enemyName} stands before you. Choose your move.`;
+    document.getElementById("combatLog").textContent =
+        "The battle begins!";
 
+    updateCombatUI();
 
-    updateCombat();
+    window.scrollTo({
+        top: document.getElementById("combatPanel").offsetTop,
+        behavior: "smooth"
+    });
 
-    document.getElementById("combatSection")
-        .scrollIntoView({
-            behavior: "smooth"
-        });
+    playSound();
 }
 
 
-/* =====================================================
-   ATTACK
-   ===================================================== */
+/* =========================================
+   PLAYER ATTACK
+========================================= */
 
 function playerAttack() {
 
-    if (!inCombat) return;
+    if (!gameState.battleActive) return;
 
     const damage = 20;
 
-    enemyHealth -= damage;
+    gameState.currentEnemy.hp -= damage;
 
-    if (enemyHealth < 0) {
-        enemyHealth = 0;
+    if (gameState.currentEnemy.hp < 0) {
+        gameState.currentEnemy.hp = 0;
     }
 
+    document.getElementById("combatLog").textContent =
+        `⚔️ You attacked for ${damage} damage!`;
 
-    document.getElementById("combatLog")
-        .textContent =
-        `You dealt ${damage} damage to the ${enemyName}.`;
+    updateCombatUI();
 
-
-    playSound("attack");
-
-
-    if (enemyHealth <= 0) {
+    if (gameState.currentEnemy.hp <= 0) {
 
         winBattle();
 
         return;
     }
 
-
-    enemyTurn();
+    setTimeout(enemyTurn, 500);
 }
 
 
-/* =====================================================
+/* =========================================
    DEFEND
-   ===================================================== */
+========================================= */
+
+let defending = false;
 
 function playerDefend() {
 
-    if (!inCombat) return;
+    if (!gameState.battleActive) return;
 
     defending = true;
 
-    document.getElementById("combatLog")
-        .textContent =
-        "You raise your shield and prepare to defend.";
+    document.getElementById("combatLog").textContent =
+        "🛡️ You are defending. The next attack will deal less damage.";
 
-    playSound("defend");
-
-    enemyTurn();
+    setTimeout(enemyTurn, 500);
 }
 
 
-/* =====================================================
+/* =========================================
    ENEMY TURN
-   ===================================================== */
+========================================= */
 
 function enemyTurn() {
 
-    let damage = enemyAttackPower;
+    if (!gameState.battleActive) return;
 
+    let damage = gameState.currentEnemy.attack;
 
     if (defending) {
 
@@ -780,995 +657,552 @@ function enemyTurn() {
         defending = false;
     }
 
+    player.hp -= damage;
 
-    health -= damage;
-
-
-    if (health < 0) {
-        health = 0;
+    if (player.hp < 0) {
+        player.hp = 0;
     }
 
+    document.getElementById("combatLog").textContent =
+        `👹 ${gameState.currentEnemy.name} attacked you for ${damage} damage!`;
 
-    document.getElementById("combatLog")
-        .textContent +=
-        ` The ${enemyName} dealt ${damage} damage.`;
+    updateCombatUI();
+    updateUI();
 
-
-    updateAll();
-
-
-    if (health <= 0) {
+    if (player.hp <= 0) {
 
         gameOver();
 
-        return;
     }
-
-
-    updateCombat();
 }
 
 
-/* =====================================================
+/* =========================================
    POTION
-   ===================================================== */
+========================================= */
 
 function usePotion() {
 
-    if (!inCombat) return;
-
+    if (!gameState.battleActive) return;
 
     const potionIndex =
-        inventory.indexOf("🧪 Health Potion");
-
+        player.inventory.indexOf("Health Potion");
 
     if (potionIndex === -1) {
 
-        document.getElementById("combatLog")
-            .textContent =
-            "You don't have a Health Potion.";
+        document.getElementById("combatLog").textContent =
+            "❌ You don't have a Health Potion.";
 
         return;
     }
 
+    player.inventory.splice(potionIndex, 1);
 
-    if (health >= maxHealth) {
+    player.hp += 30;
 
-        document.getElementById("combatLog")
-            .textContent =
-            "Your health is already full.";
-
-        return;
+    if (player.hp > player.maxHp) {
+        player.hp = player.maxHp;
     }
 
+    document.getElementById("combatLog").textContent =
+        "🧪 You used a Health Potion and restored 30 HP.";
 
-    inventory.splice(potionIndex, 1);
-
-    health += 30;
-
-
-    if (health > maxHealth) {
-        health = maxHealth;
-    }
-
-
-    document.getElementById("combatLog")
-        .textContent =
-        "You used a Health Potion and restored 30 HP.";
-
-
-    playSound("heal");
-
-    updateAll();
-
-    enemyTurn();
+    updateCombatUI();
+    updateUI();
 }
 
 
-/* =====================================================
+/* =========================================
    RUN
-   ===================================================== */
+========================================= */
 
 function runFromBattle() {
 
-    if (!inCombat) return;
+    if (!gameState.battleActive) return;
 
-    inCombat = false;
+    gameState.battleActive = false;
+    gameState.currentEnemy = null;
 
-    document.getElementById("combatSection")
-        .classList.add("hidden");
+    document.getElementById("combatPanel").classList.add("hidden");
 
+    document.getElementById("combatLog").textContent =
+        "You escaped.";
 
-    if (enemyName === "Goblin") {
+    if (gameState.location === "castle") {
 
-        showForest();
+        showCastle();
 
     } else {
 
-        showCastle();
+        showForest();
+
     }
 }
 
 
-/* =====================================================
-   WIN
-   ===================================================== */
+/* =========================================
+   WIN BATTLE
+========================================= */
 
 function winBattle() {
 
-    inCombat = false;
+    const enemy = gameState.currentEnemy;
 
-    document.getElementById("combatSection")
-        .classList.add("hidden");
+    gameState.battleActive = false;
 
+    if (enemy.type === "goblin") {
 
-    if (enemyName === "Goblin") {
+        gameState.goblinDefeated = true;
 
-        goblinDefeated = true;
+        player.gold += 10;
 
-        castleUnlocked = true;
+        player.inventory.push("Ancient Key");
 
-        addItem("🗝️ Ancient Key");
-
-        gold += 10;
-
-        unlockAchievement("🗡️ Goblin Hunter");
+        unlockAchievement(1);
 
         showCharacter(
-            "Hero",
-            "assets/Hero.png",
-            "The Goblin has been defeated! I found an Ancient Key."
+            "traveler.png",
+            "Traveler",
+            "Amazing! You defeated the Goblin and found an Ancient Key!"
         );
 
-
-        setChoices([
-
-            ["🏘️ Return to Village", showVillage],
-
-            ["🕳️ Explore Cave", showCave],
-
-            ["🏰 Go to Castle", showCastle]
-
-        ]);
     }
 
 
-    else if (enemyName === "Dark Knight") {
+    else if (enemy.type === "darkKnight") {
 
-        darkKnightDefeated = true;
+        gameState.darkKnightDefeated = true;
 
-        addItem("⚔️ Dark Sword");
+        player.gold += 25;
 
-        gold += 25;
+        player.inventory.push("Dark Sword");
 
-        unlockAchievement("⚔️ Dark Knight Slayer");
+        unlockAchievement(2);
 
         showCharacter(
-            "Hero",
-            "assets/Hero.png",
-            "The Dark Knight has fallen. I have obtained the Dark Sword."
+            "blacksmith.png",
+            "Blacksmith",
+            "Excellent! You defeated the Dark Knight and obtained the Dark Sword."
         );
 
-
-        setChoices([
-
-            ["👑 Continue", showCastle],
-
-            ["🌲 Return to Forest", showForest]
-
-        ]);
     }
 
 
-    else if (enemyName === "Shadow King") {
+    else if (enemy.type === "shadowKing") {
 
-        bossDefeated = true;
+        gameState.bossDefeated = true;
 
-        addItem("💎 Ancient Crystal");
+        player.gold += 100;
 
-        gold += 100;
+        player.inventory.push("Ancient Crystal");
 
-        unlockAchievement("👑 Shadow King");
+        unlockAchievement(3);
 
         showCharacter(
-            "Hero",
-            "assets/Hero.png",
-            "The Shadow King has fallen. The Ancient Crystal is now yours."
+            "shadow-king.png",
+            "Shadow King",
+            "You have defeated me... The fate of the kingdom is now in your hands."
         );
 
-        showEnding();
     }
 
+    document.getElementById("combatPanel").classList.add("hidden");
 
-    updateAll();
+    gameState.currentEnemy = null;
+
+    updateUI();
+
+    if (gameState.location === "forest") {
+
+        showForest();
+
+    } else if (gameState.location === "castle") {
+
+        showCastle();
+
+    }
 }
 
 
-/* =====================================================
-   ENDINGS
-   ===================================================== */
+/* =========================================
+   COMBAT UI
+========================================= */
 
-function showEnding() {
+function updateCombatUI() {
 
-    document.getElementById("endingSection")
-        .classList.remove("hidden");
+    if (!gameState.currentEnemy) return;
 
+    const enemy = gameState.currentEnemy;
 
-    document.getElementById("endingSection")
-        .scrollIntoView({
-            behavior: "smooth"
-        });
+    document.getElementById("playerHPBar").style.width =
+        `${(player.hp / player.maxHp) * 100}%`;
 
+    document.getElementById("playerHPText").textContent =
+        `${player.hp}/${player.maxHp}`;
 
-    document.getElementById("endingTitle")
-        .textContent =
-        "🏆 The Shadow King Has Fallen";
+    document.getElementById("enemyHPBar").style.width =
+        `${(enemy.hp / enemy.maxHp) * 100}%`;
 
+    document.getElementById("enemyHPText").textContent =
+        `${enemy.hp}/${enemy.maxHp}`;
 
-    document.getElementById("endingText")
-        .textContent =
-        "The final battle is over. The Ancient Crystal now rests in your hands. What will you do with its power?";
+    document.getElementById("enemyName").textContent =
+        enemy.name;
+
+    document.getElementById("enemyCombatImage").src =
+        enemy.image;
 }
 
 
-function restoreKingdom() {
-
-    unlockAchievement("🌟 Kingdom Savior");
-
-    document.querySelector(".ending-icon")
-        .textContent = "🌟";
-
-    document.getElementById("endingTitle")
-        .textContent =
-        "🌟 The Kingdom Is Restored";
-
-
-    document.getElementById("endingText")
-        .textContent =
-        "You destroy the darkness within the Ancient Crystal and restore the kingdom. Peace returns to the land, and the people remember you as their greatest hero.";
-}
-
-
-function takeCrystalPower() {
-
-    document.querySelector(".ending-icon")
-        .textContent = "👑";
-
-    document.getElementById("endingTitle")
-        .textContent =
-        "👑 The New Shadow King";
-
-
-    document.getElementById("endingText")
-        .textContent =
-        "You accept the power of the Ancient Crystal. The kingdom survives, but you become its new ruler.";
-}
-
-
-function destroyCrystal() {
-
-    document.querySelector(".ending-icon")
-        .textContent = "💥";
-
-    document.getElementById("endingTitle")
-        .textContent =
-        "💥 The Crystal Is Destroyed";
-
-
-    document.getElementById("endingText")
-        .textContent =
-        "You destroy the Ancient Crystal. Its dark power disappears forever, and the kingdom is finally free.";
-}
-
-
-/* =====================================================
+/* =========================================
    GAME OVER
-   ===================================================== */
+========================================= */
 
 function gameOver() {
 
-    inCombat = false;
+    gameState.battleActive = false;
 
-    document.getElementById("combatSection")
-        .classList.add("hidden");
+    document.getElementById("combatPanel").classList.add("hidden");
 
+    document.getElementById("endingPanel").classList.remove("hidden");
 
-    document.getElementById("endingSection")
-        .classList.remove("hidden");
-
-
-    document.querySelector(".ending-icon")
-        .textContent = "💀";
-
-
-    document.getElementById("endingTitle")
-        .textContent =
+    document.getElementById("endingTitle").textContent =
         "💀 Game Over";
 
+    document.getElementById("endingText").textContent =
+        "Your adventure has ended. The kingdom still waits for its hero.";
 
-    document.getElementById("endingText")
-        .textContent =
-        "Your journey has come to an end. The darkness remains. Begin a new adventure and try again.";
-
-
-    document.querySelector(".ending-buttons")
-        .innerHTML = `
-
-            <button onclick="startNewGame()">
-                🔄 Try Again
-            </button>
-
-            <button onclick="backToMenu()">
-                🏠 Main Menu
-            </button>
-        `;
+    document.getElementById("choices").innerHTML = "";
 }
 
 
-/* =====================================================
+/* =========================================
+   ENDINGS
+========================================= */
+
+function endingRestore() {
+
+    showEnding(
+        "🏆 Hero of the Kingdom",
+        "You restored the Ancient Crystal and brought peace back to the Lost Kingdom. The people celebrate you as their hero."
+    );
+
+    unlockAchievement(4);
+}
+
+
+function endingPower() {
+
+    showEnding(
+        "👑 The New Ruler",
+        "You chose to keep the Crystal's power. You became the most powerful person in the kingdom."
+    );
+}
+
+
+function endingDestroy() {
+
+    showEnding(
+        "🔥 The Kingdom Reborn",
+        "You destroyed the Ancient Crystal and ended its dangerous power forever. A new era begins for the kingdom."
+    );
+}
+
+
+function showEnding(title, text) {
+
+    document.getElementById("endingPanel").classList.remove("hidden");
+
+    document.getElementById("endingTitle").textContent = title;
+
+    document.getElementById("endingText").textContent = text;
+
+    document.getElementById("choices").innerHTML = "";
+
+    gameState.location = "ending";
+
+    updateUI();
+}
+
+
+/* =========================================
    INVENTORY
-   ===================================================== */
-
-function addItem(item) {
-
-    if (!inventory.includes(item)) {
-
-        inventory.push(item);
-    }
-
-    updateInventory();
-}
-
+========================================= */
 
 function updateInventory() {
 
-    const inventoryDiv =
-        document.getElementById("inventory");
+    const container = document.getElementById("inventory");
 
-    inventoryDiv.innerHTML = "";
+    container.innerHTML = "";
 
+    if (player.inventory.length === 0) {
 
-    if (inventory.length === 0) {
-
-        inventoryDiv.innerHTML =
-            `<p>Your inventory is empty.</p>`;
+        container.innerHTML =
+            "<p>Inventory is empty.</p>";
 
         return;
     }
 
+    player.inventory.forEach(item => {
 
-    inventory.forEach(item => {
-
-        const div =
-            document.createElement("div");
+        const div = document.createElement("div");
 
         div.className = "inventory-item";
 
-        div.textContent = item;
+        div.textContent = "🎒 " + item;
 
-        inventoryDiv.appendChild(div);
+        container.appendChild(div);
+
     });
 }
 
 
-/* =====================================================
-   STATUS
-   ===================================================== */
-
-function updateStatus() {
-
-    document.getElementById("healthText")
-        .textContent =
-        `${health} / ${maxHealth}`;
-
-
-    const percentage =
-        (health / maxHealth) * 100;
-
-
-    document.getElementById("healthFill")
-        .style.width =
-        `${percentage}%`;
-
-
-    document.getElementById("goldText")
-        .textContent = gold;
-}
-
-
-/* =====================================================
+/* =========================================
    QUEST
-   ===================================================== */
+========================================= */
 
 function updateQuest() {
 
-    const questText =
-        document.getElementById("questText");
+    const quest = document.getElementById("questText");
 
+    if (!gameState.questStarted) {
 
-    if (!questStarted) {
-
-        questText.textContent =
-            "Talk to the Elder in the village.";
+        quest.textContent =
+            "Talk to the Elder to begin your adventure.";
 
         return;
     }
 
+    if (!gameState.goblinDefeated) {
 
-    if (!goblinDefeated) {
-
-        questText.textContent =
-            "⚔️ Defeat the Goblin in the Forest.";
-
-        return;
-    }
-
-
-    if (!questCompleted) {
-
-        questText.textContent =
-            "🏘️ Return to the Elder for your reward.";
+        quest.textContent =
+            "⚔️ Quest: Defeat the Goblin in the forest.";
 
         return;
     }
 
+    if (!gameState.darkKnightDefeated) {
 
-    if (!bossDefeated) {
-
-        questText.textContent =
-            "🏰 Enter the Shadow Castle and defeat the evil within.";
+        quest.textContent =
+            "🛡️ Quest: Defeat the Dark Knight deeper in the forest.";
 
         return;
     }
 
+    if (!gameState.bossDefeated) {
 
-    questText.textContent =
-        "🏆 Choose the fate of the Ancient Crystal.";
+        quest.textContent =
+            "🏰 Quest: Enter the castle and defeat the Shadow King.";
+
+        return;
+    }
+
+    quest.textContent =
+        "💎 Quest Complete: Decide the fate of the Ancient Crystal.";
 }
 
 
-/* =====================================================
+/* =========================================
    ACHIEVEMENTS
-   ===================================================== */
+========================================= */
 
-function unlockAchievement(name) {
+function unlockAchievement(number) {
 
-    document.querySelectorAll(".achievement")
-        .forEach(item => {
+    const list =
+        document.getElementById("achievementList").children;
 
-            if (item.textContent.includes(name)) {
+    if (list[number]) {
 
-                item.classList.remove("locked");
+        list[number].classList.add("unlocked");
 
-                item.classList.add("unlocked");
-            }
-        });
-}
-
-
-function updateAchievements() {
-
-    const achievements =
-        document.querySelectorAll(".achievement");
-
-
-    if (goblinDefeated) {
-
-        achievements[0]
-            .classList.add("unlocked");
-
-        achievements[0]
-            .classList.remove("locked");
-    }
-
-
-    if (darkKnightDefeated) {
-
-        achievements[1]
-            .classList.add("unlocked");
-
-        achievements[1]
-            .classList.remove("locked");
-    }
-
-
-    if (bossDefeated) {
-
-        achievements[2]
-            .classList.add("unlocked");
-
-        achievements[2]
-            .classList.remove("locked");
+        list[number].textContent =
+            list[number].textContent.replace("🔒", "🏆");
     }
 }
 
 
-/* =====================================================
-   COMBAT UI
-   ===================================================== */
+/* =========================================
+   UPDATE UI
+========================================= */
 
-function updateCombat() {
+function updateUI() {
 
-    if (!inCombat) return;
+    document.getElementById("health").textContent =
+        `${player.hp}/${player.maxHp}`;
 
+    document.getElementById("gold").textContent =
+        player.gold;
 
-    const playerPercent =
-        (health / maxHealth) * 100;
-
-
-    const enemyPercent =
-        (enemyHealth / enemyMaxHealth) * 100;
-
-
-    document.getElementById("playerBattleHealth")
-        .style.width =
-        `${playerPercent}%`;
-
-
-    document.getElementById("enemyBattleHealth")
-        .style.width =
-        `${enemyPercent}%`;
-
-
-    document.getElementById("playerBattleText")
-        .textContent =
-        `${health} / ${maxHealth}`;
-
-
-    document.getElementById("enemyBattleText")
-        .textContent =
-        `${enemyHealth} / ${enemyMaxHealth}`;
-}
-
-
-/* =====================================================
-   UPDATE ALL
-   ===================================================== */
-
-function updateAll() {
-
-    updateStatus();
+    document.getElementById("itemCount").textContent =
+        player.inventory.length;
 
     updateInventory();
 
     updateQuest();
 
-    updateAchievements();
-
-    updateCombat();
+    if (gameState.battleActive) {
+        updateCombatUI();
+    }
 }
 
 
-/* =====================================================
-   SAVE
-   ===================================================== */
+/* =========================================
+   SAVE GAME
+========================================= */
 
 function saveGame() {
 
     const saveData = {
 
-        health,
-        gold,
-        inventory,
+        player: player,
 
-        currentLocation,
+        gameState: gameState
 
-        goblinDefeated,
-        darkKnightDefeated,
-        bossDefeated,
-
-        castleUnlocked,
-
-        questStarted,
-        questCompleted,
-
-        caveQuestCompleted,
-
-        healerUsed,
-        blacksmithTalked
     };
-
 
     localStorage.setItem(
         "lostKingdomSave",
         JSON.stringify(saveData)
     );
 
-
-    showSaveMessage(
-        "💾 Game saved successfully!"
-    );
+    alert("💾 Game saved successfully!");
 }
 
 
-/* =====================================================
-   LOAD
-   ===================================================== */
+/* =========================================
+   CONTINUE GAME
+========================================= */
 
-function loadGame() {
+function continueGame() {
 
-    const saved =
+    const savedGame =
         localStorage.getItem("lostKingdomSave");
 
+    if (!savedGame) {
 
-    if (!saved) {
+        alert("❌ No saved game found.");
 
-        alert("No saved game found.");
-
-        return false;
+        return;
     }
 
-
     const data =
-        JSON.parse(saved);
+        JSON.parse(savedGame);
 
+    player = data.player;
 
-    health =
-        data.health ?? 100;
+    gameState = data.gameState;
 
-    gold =
-        data.gold ?? 0;
+    gameState.battleActive = false;
+    gameState.currentEnemy = null;
 
-    inventory =
-        data.inventory ?? [];
+    document.getElementById("combatPanel")
+        .classList.add("hidden");
 
+    document.getElementById("endingPanel")
+        .classList.add("hidden");
 
-    currentLocation =
-        data.currentLocation ?? "Village";
+    showScreen("gameScreen");
 
+    restoreLocation();
 
-    goblinDefeated =
-        data.goblinDefeated ?? false;
-
-    darkKnightDefeated =
-        data.darkKnightDefeated ?? false;
-
-    bossDefeated =
-        data.bossDefeated ?? false;
-
-
-    castleUnlocked =
-        data.castleUnlocked ?? false;
-
-
-    questStarted =
-        data.questStarted ?? false;
-
-    questCompleted =
-        data.questCompleted ?? false;
-
-
-    caveQuestCompleted =
-        data.caveQuestCompleted ?? false;
-
-
-    healerUsed =
-        data.healerUsed ?? false;
-
-    blacksmithTalked =
-        data.blacksmithTalked ?? false;
-
-
-    updateAll();
-
-    showSaveMessage("📂 Game loaded!");
-
-    return true;
+    updateUI();
 }
 
 
-/* =====================================================
+/* =========================================
    RESTORE LOCATION
-   ===================================================== */
+========================================= */
 
 function restoreLocation() {
 
-    switch (currentLocation) {
+    switch (gameState.location) {
 
-        case "Village":
-            showVillage();
-            break;
-
-        case "Forest":
+        case "forest":
             showForest();
             break;
 
-        case "Cave":
+        case "cave":
             showCave();
             break;
 
-        case "Castle":
+        case "castle":
             showCastle();
             break;
 
+        case "village":
         default:
             showVillage();
+            break;
     }
 }
 
 
-/* =====================================================
-   SAVE MESSAGE
-   ===================================================== */
-
-function showSaveMessage(message) {
-
-    const element =
-        document.getElementById("saveMessage");
-
-    element.textContent = message;
-
-
-    setTimeout(() => {
-
-        element.textContent = "";
-
-    }, 2500);
-}
-
-
-/* =====================================================
+/* =========================================
    SOUND
-   ===================================================== */
+========================================= */
 
-function initAudio() {
+let audioContext = null;
 
-    if (!audioContext) {
+function playSound() {
 
-        audioContext =
-            new (
-                window.AudioContext ||
-                window.webkitAudioContext
-            )();
-    }
+    try {
 
+        if (!audioContext) {
 
-    if (audioContext.state === "suspended") {
+            audioContext =
+                new (window.AudioContext ||
+                    window.webkitAudioContext)();
+        }
 
-        audioContext.resume();
-    }
-}
+        const oscillator =
+            audioContext.createOscillator();
 
+        const gain =
+            audioContext.createGain();
 
-function playTone(
-    frequency,
-    duration = .15,
-    type = "sine",
-    volume = .04
-) {
+        oscillator.frequency.value = 440;
 
-    if (!soundEnabled) return;
+        oscillator.type = "sine";
 
-    initAudio();
-
-
-    const oscillator =
-        audioContext.createOscillator();
-
-    const gain =
-        audioContext.createGain();
-
-
-    oscillator.type = type;
-
-    oscillator.frequency.value =
-        frequency;
-
-    gain.gain.value =
-        volume;
-
-
-    oscillator.connect(gain);
-
-    gain.connect(audioContext.destination);
-
-
-    oscillator.start();
-
-
-    gain.gain.exponentialRampToValueAtTime(
-        .001,
-        audioContext.currentTime + duration
-    );
-
-
-    oscillator.stop(
-        audioContext.currentTime + duration
-    );
-}
-
-
-function playSound(type) {
-
-    if (!soundEnabled) return;
-
-
-    if (type === "attack") {
-
-        playTone(
-            140,
-            .12,
-            "sawtooth",
-            .06
+        gain.gain.setValueAtTime(
+            0.05,
+            audioContext.currentTime
         );
 
-        setTimeout(() => {
-
-            playTone(
-                90,
-                .1,
-                "square",
-                .04
-            );
-
-        }, 70);
-    }
-
-
-    else if (type === "defend") {
-
-        playTone(
-            220,
-            .15,
-            "triangle",
-            .04
-        );
-    }
-
-
-    else if (type === "heal") {
-
-        playTone(
-            440,
-            .2,
-            "sine",
-            .04
+        gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            audioContext.currentTime + 0.5
         );
 
-        setTimeout(() => {
+        oscillator.connect(gain);
 
-            playTone(
-                660,
-                .2,
-                "sine",
-                .04
-            );
+        gain.connect(audioContext.destination);
 
-        }, 150);
-    }
+        oscillator.start();
 
-
-    else if (type === "quest") {
-
-        playTone(
-            330,
-            .15,
-            "triangle",
-            .04
+        oscillator.stop(
+            audioContext.currentTime + 0.5
         );
 
-        setTimeout(() => {
+    } catch (error) {
 
-            playTone(
-                440,
-                .2,
-                "triangle",
-                .04
-            );
+        console.log("Audio unavailable.");
 
-        }, 120);
     }
-
-
-    else if (type === "start") {
-
-        playTone(
-            261.63,
-            .2,
-            "sine",
-            .04
-        );
-
-        setTimeout(() => {
-
-            playTone(
-                392,
-                .3,
-                "sine",
-                .04
-            );
-
-        }, 200);
-    }
-}
-
-
-/* =====================================================
-   MUSIC
-   ===================================================== */
-
-function startMusic() {
-
-    if (!soundEnabled) return;
-
-    if (musicTimer) return;
-
-    initAudio();
-
-
-    musicTimer =
-        setInterval(() => {
-
-            if (!soundEnabled) return;
-
-
-            playTone(
-                musicNotes[musicStep],
-                .35,
-                "sine",
-                .012
-            );
-
-
-            musicStep =
-                (musicStep + 1)
-                % musicNotes.length;
-
-        }, 700);
 }
 
 
 function stopMusic() {
-
-    if (musicTimer) {
-
-        clearInterval(musicTimer);
-
-        musicTimer = null;
-    }
+    // Reserved for future background music.
 }
 
 
-function toggleSound() {
+/* =========================================
+   START
+========================================= */
 
-    soundEnabled =
-        !soundEnabled;
+document.addEventListener("DOMContentLoaded", () => {
 
+    updateUI();
 
-    const button =
-        document.getElementById("soundButton");
-
-
-    if (soundEnabled) {
-
-        button.textContent =
-            "🔊 Sound";
-
-        initAudio();
-
-        startMusic();
-
-    } else {
-
-        button.textContent =
-            "🔇 Muted";
-
-        stopMusic();
-    }
-}
-
-
-/* =====================================================
-   INITIALIZATION
-   ===================================================== */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-        updateAll();
-
-        showScreen("mainMenu");
-
-    }
-);
+});
